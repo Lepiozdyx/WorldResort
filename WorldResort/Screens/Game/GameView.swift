@@ -8,6 +8,8 @@
 import SwiftUI
 
 struct GameView: View {
+    @EnvironmentObject private var gameViewModel: GameViewModel
+    
     var body: some View {
         ZStack {
             MainBackView()
@@ -129,9 +131,16 @@ struct GameView: View {
             }
         }
         .navigationBarBackButtonHidden(true)
+        .onAppear {
+            gameViewModel.startGame()
+        }
+        .onDisappear {
+            gameViewModel.resetGame()
+        }
     }
 }
 
 #Preview {
     GameView()
+        .environmentObject(GameViewModel())
 }

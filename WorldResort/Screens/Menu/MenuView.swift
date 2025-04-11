@@ -8,6 +8,8 @@
 import SwiftUI
 
 struct MenuView: View {
+    @StateObject private var gameViewModel = GameViewModel()
+    
     var body: some View {
         NavigationView {
             ZStack(alignment: .bottom) {
@@ -20,7 +22,8 @@ struct MenuView: View {
                     Spacer()
                     
                     NavigationLink {
-                         GameView()
+                        GameView()
+                            .environmentObject(gameViewModel)
                     } label: {
                         ActionView(name: .mainRectangle, text: "start", maxWidth: 180, maxHeight: 55)
                     }
