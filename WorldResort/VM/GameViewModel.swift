@@ -34,8 +34,9 @@ class GameViewModel: ObservableObject {
     private func setupRooms() {
         gameState.rooms.forEach { room in
             let roomViewModel = RoomViewModel(room: room, gameViewModel: self)
-            roomViewModel.didCheckoutGuest = { [weak self] guest in
-                self?.handleGuestCheckout(guest: guest)
+            // Обновляем обработчик выселения, чтобы он учитывал чаевые
+            roomViewModel.didCheckoutGuest = { [weak self] guest, tips in
+                self?.handleGuestCheckout(guest: guest, tips: tips)
             }
             roomViewModel.didCompleteCleaningRoom = { [weak self] roomVM in
                 self?.handleRoomCleaningCompleted(roomVM: roomVM)
@@ -169,10 +170,20 @@ class GameViewModel: ObservableObject {
         return false
     }
     
-    func handleGuestCheckout(guest: Guest) {
-        // Добавление монет в зависимости от типа гостя
-        let coinsEarned = guest.type.coinReward
-        bank.addCoins(coinsEarned)
+    func handleGuestCheckout(guest: Guest, tips: Int = 0) {
+        // Базовая награда за тип гостя
+        let baseCoins = guest.type.coinReward
+        // Добавляем чаевые к базовой награде
+        let totalCoins = baseCoins + tips
+        
+        // Показываем анимацию или уведомление о полученных чаевых, если они есть
+        if tips > 0 {
+            // Тут можно добавить визуальное уведомление о чаевых
+            print("Получены чаевые: \(tips) монет!")
+        }
+        
+        // Добавляем монеты в банк
+        bank.addCoins(totalCoins)
     }
     
     func handleRoomCleaningCompleted(roomVM: RoomViewModel) {

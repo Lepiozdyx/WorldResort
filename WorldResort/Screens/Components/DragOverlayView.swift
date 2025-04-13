@@ -46,17 +46,3 @@ struct DragOverlayView: View {
         .animation(.easeInOut(duration: 0.1), value: draggableState.currentDrag != nil)
     }
 }
-
-#Preview {
-    let draggableState = DraggableState()
-    
-    // Симулируем перетаскивание ключа для предпросмотра
-    DispatchQueue.main.async {
-        draggableState.startDragging(
-            type: .key(roomNumber: 101, roomType: .single),
-            position: CGPoint(x: 200, y: 200)
-        )
-    }
-    
-    return DragOverlayView(draggableState: draggableState)
-}

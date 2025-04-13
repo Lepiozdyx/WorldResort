@@ -19,7 +19,8 @@ struct RoomCellView: View {
                     .foregroundStyle(.brownLight)
                     .overlay {
                         RoundedRectangle(cornerRadius: 10)
-                            .stroke(roomViewModel.status.color, lineWidth: 2)
+                            .stroke(roomViewModel.status.color, lineWidth: 3)
+                            .shadow(color: roomViewModel.status.color, radius: 1)
                     }
                 
                 roomContent

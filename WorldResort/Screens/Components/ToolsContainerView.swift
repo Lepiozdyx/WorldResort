@@ -12,32 +12,6 @@ struct ToolsContainerView: View {
     @ObservedObject var gameViewModel: GameViewModel
     @ObservedObject var draggableState: DraggableState
     
-    enum ToolType {
-        case food
-        case cleaning
-        
-        var name: String {
-            switch self {
-            case .food: return "kitchen"
-            case .cleaning: return "cleaning"
-            }
-        }
-        
-        var image: ImageResource {
-            switch self {
-            case .food: return .bell
-            case .cleaning: return .cleaningBrush
-            }
-        }
-        
-        var dragType: DraggableState.DragType {
-            switch self {
-            case .food: return .bell
-            case .cleaning: return .brush
-            }
-        }
-    }
-    
     var body: some View {
         VStack {
             Text(type.name)
@@ -46,21 +20,13 @@ struct ToolsContainerView: View {
                 .multilineTextAlignment(.center)
                 .textCase(.uppercase)
             
-            HStack {
-                ToolCellView(
-                    type: type,
-                    cooldown: getCooldown(),
-                    draggableState: draggableState
-                )
-                
-                ToolCellView(
-                    type: type,
-                    cooldown: getCooldown(),
-                    draggableState: draggableState
-                )
-            }
+            ToolCellView(
+                type: type,
+                cooldown: getCooldown(),
+                draggableState: draggableState
+            )
         }
-        .frame(width: 120, height: 100)
+        .frame(width: 100, height: 100)
         .background {
             Image(.mainRectangle)
                 .resizable()
@@ -79,7 +45,7 @@ struct ToolsContainerView: View {
 }
 
 struct ToolCellView: View {
-    let type: ToolsContainerView.ToolType
+    let type: ToolType
     let cooldown: TimeInterval
     @ObservedObject var draggableState: DraggableState
     

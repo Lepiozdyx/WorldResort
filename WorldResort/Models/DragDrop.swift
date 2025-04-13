@@ -99,10 +99,7 @@ struct DropTargetModifier: ViewModifier {
                         // Если не успешно, возвращаем объект
                         if !success {
                             DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                                draggableState.startDragging(type: oldDrag.type, position: oldDrag.position)
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                                    draggableState.stopDragging()
-                                }
+                                draggableState.stopDragging()
                             }
                         }
                     }

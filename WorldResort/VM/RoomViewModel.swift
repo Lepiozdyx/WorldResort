@@ -20,12 +20,17 @@ class RoomViewModel: ObservableObject, Identifiable {
     @Published var currentGuest: Guest?
     @Published var needsService = false
     
-    var didCheckoutGuest: ((Guest) -> Void)?
+    // Добавляем счетчик оказанных услуг
+    @Published var servicesProvided: Int = 0
+    
+    // Константа для чаевых за одну услугу
+    private let tipPerService: Int = 5
+    
+    var didCheckoutGuest: ((Guest, Int) -> Void)? // Обновляем сигнатуру, чтобы передавать чаевые
     var didCompleteCleaningRoom: ((RoomViewModel) -> Void)?
     private var serviceRequestTimer: AnyCancellable?
     
-    // Для инструментов
-    private weak var gameViewModel: GameViewModel?
+    weak var gameViewModel: GameViewModel?
     
     init(room: Room, gameViewModel: GameViewModel? = nil) {
         self.id = room.id
@@ -47,6 +52,7 @@ class RoomViewModel: ObservableObject, Identifiable {
         currentGuest = guest
         status = .occupied
         stayTimeRemaining = GameConstants.guestStayTime
+        servicesProvided = 0 // Сбрасываем счетчик услуг при заселении
         
         scheduleServiceRequest()
     }
@@ -83,9 +89,11 @@ class RoomViewModel: ObservableObject, Identifiable {
         // Запуск кулдауна
         gameViewModel.foodToolCooldown = GameConstants.toolCooldownTime
         
-        // Обслуживание
+        // Обслуживание и увеличение счетчика услуг
         status = .occupied
         needsService = false
+        servicesProvided += 1 // Увеличиваем счетчик успешно оказанных услуг
+        
         return true
     }
     
@@ -99,6 +107,7 @@ class RoomViewModel: ObservableObject, Identifiable {
             
             status = .occupied
             needsService = false
+            servicesProvided += 1 // Увеличиваем счетчик успешно оказанных услуг
             return true
         }
         
@@ -142,12 +151,16 @@ class RoomViewModel: ObservableObject, Identifiable {
         // Комната становится грязной после выселения
         status = .dirty
         
-        // Вызов колбэка для награждения монетами
-        didCheckoutGuest?(guest)
+        // Рассчитываем чаевые (5 монет за каждую оказанную услугу)
+        let tips = servicesProvided * tipPerService
+        
+        // Вызов колбэка для награждения монетами с учетом чаевых
+        didCheckoutGuest?(guest, tips)
         
         // Очистка гостя
         currentGuest = nil
         stayTimeRemaining = nil
+        servicesProvided = 0 // Сбрасываем счетчик услуг
     }
     
     private func cleaningCompleted() {
@@ -164,11 +177,7 @@ class RoomViewModel: ObservableObject, Identifiable {
         stayTimeRemaining = nil
         cleaningTimeRemaining = nil
         needsService = false
+        servicesProvided = 0 // Сбрасываем счетчик услуг
         serviceRequestTimer?.cancel()
-    }
-    
-    // Привязка к GameViewModel
-    func setGameViewModel(_ viewModel: GameViewModel) {
-        self.gameViewModel = viewModel
     }
 }
