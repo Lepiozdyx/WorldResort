@@ -16,11 +16,12 @@ struct MenuView: View {
                 MainBackView()
                 
                 VStack(spacing: 20) {
-                    // Daily task
+                    // Ежедневное задание
                     ActionView(name: .greenCapsule, text: "accommodate 5 guests", maxWidth: 300, maxHeight: 70)
                     
                     Spacer()
                     
+                    // Кнопка Start
                     NavigationLink {
                         GameView()
                             .environmentObject(gameViewModel)
@@ -28,21 +29,25 @@ struct MenuView: View {
                         ActionView(name: .mainRectangle, text: "start", maxWidth: 180, maxHeight: 55)
                     }
 
+                    // Нижний ряд кнопок
                     HStack(spacing: 10) {
                         NavigationLink {
-                            // ProgressView()
+                            Text("Progress Screen")
+                                .foregroundStyle(.white)
                         } label: {
                             ActionView(name: .mainRectangle, text: "progress", maxWidth: 180, maxHeight: 55)
                         }
                         
                         NavigationLink {
-                            // SettingsView()
+                            Text("Settings Screen")
+                                .foregroundStyle(.white)
                         } label: {
                             ActionView(name: .mainRectangle, text: "settings", maxWidth: 180, maxHeight: 55)
                         }
                         
                         NavigationLink {
-                            // ShopView()
+                            Text("Shop Screen")
+                                .foregroundStyle(.white)
                         } label: {
                             ActionView(name: .mainRectangle, text: "shop", maxWidth: 180, maxHeight: 55)
                         }
@@ -52,6 +57,10 @@ struct MenuView: View {
             }
         }
         .navigationViewStyle(.stack)
+        .navigationBarBackButtonHidden(true)
+        .onAppear {
+            gameViewModel.resetGame()
+        }
     }
 }
 

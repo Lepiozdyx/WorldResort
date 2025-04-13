@@ -8,9 +8,8 @@
 import SwiftUI
 
 struct TopBarView: View {
-    
     let amount: Int
-    let pauseAction: () -> ()
+    let pauseAction: () -> Void
     
     var body: some View {
         VStack {
@@ -27,6 +26,8 @@ struct TopBarView: View {
                                 .foregroundStyle(.white)
                         }
                 }
+                .buttonStyle(.plain)
+                
                 Spacer()
                 
                 CoinCounterView(amount: amount)
@@ -37,6 +38,7 @@ struct TopBarView: View {
     }
 }
 
+// MARK: - Previews
 #Preview {
     TopBarView(amount: 130, pauseAction: {})
 }

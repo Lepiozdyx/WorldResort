@@ -9,45 +9,29 @@ import SwiftUI
 
 struct GameView: View {
     @EnvironmentObject private var gameViewModel: GameViewModel
+    @State private var dragInfo: DragInfo?
+    @State private var isPausePresented = false
+    @State private var guestWishRect: CGRect = .zero
     
     var body: some View {
         ZStack {
+            // Фон
             MainBackView()
             
-            TopBarView(amount: 999, pauseAction: {})
-            
-            // MARK: WishBar and Left bar
-            HStack {
-                // WishBar
-                Image(.wishes)
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 150)
-                    .overlay {
-                        // Guests wish
-                        Text("Double plz!")
-                            .font(.system(size: 18))
-                            .foregroundStyle(.black)
-                            .offset(y: -20)
-                    }
-                    .offset(x: 0, y: -50)
-                
-                Spacer()
-                
-                VStack {
-                    ItemContainerView(name: "kitchen", item: .bell)
-                    
-                    ItemContainerView(name: "cleaning", item: .cleaningBrush)
-                }
+            // Верхняя панель (пауза и монеты)
+            TopBarView(amount: gameViewModel.coinBalance) {
+                isPausePresented = true
+                gameViewModel.togglePause()
             }
-            .padding(.horizontal, 8)
             
+            // Центральная часть с комнатами
             VStack {
                 Spacer()
                 
-                HStack {
+                HStack(spacing: 30) {
+                    // Левая колонка комнат
                     VStack(spacing: 15) {
-                        // Single rooms
+                        // Single Rooms
                         VStack {
                             Text("single")
                                 .font(.system(size: 12, weight: .bold, design: .default))
@@ -55,13 +39,20 @@ struct GameView: View {
                                 .textCase(.uppercase)
                             
                             HStack {
-                                ForEach(0..<4) { _ in
-                                    ItemCellView(item: .keys, isRoom: true)
+                                ForEach(gameViewModel.rooms(of: .single)) { room in
+                                    RoomCellView(
+                                        roomViewModel: room,
+                                        dragInfo: $dragInfo
+                                    )
+                                    .id(room.id)
+                                    .onDrop(of: ["public.text"], isTargeted: nil) { providers, location in
+                                        return handleDrop(for: room, providers: providers)
+                                    }
                                 }
                             }
                         }
                         
-                        // family rooms
+                        // Family Rooms
                         VStack {
                             Text("family")
                                 .font(.system(size: 12, weight: .bold, design: .default))
@@ -69,17 +60,23 @@ struct GameView: View {
                                 .textCase(.uppercase)
                             
                             HStack {
-                                ForEach(0..<2) { _ in
-                                    ItemCellView(item: .keys, isRoom: true)
+                                ForEach(gameViewModel.rooms(of: .family)) { room in
+                                    RoomCellView(
+                                        roomViewModel: room,
+                                        dragInfo: $dragInfo
+                                    )
+                                    .id(room.id)
+                                    .onDrop(of: ["public.text"], isTargeted: nil) { providers, location in
+                                        return handleDrop(for: room, providers: providers)
+                                    }
                                 }
                             }
                         }
                     }
                     
-                    Spacer()
-                    
+                    // Правая колонка комнат
                     VStack(spacing: 15) {
-                        // Double rooms
+                        // Double Rooms
                         VStack {
                             Text("double")
                                 .font(.system(size: 12, weight: .bold, design: .default))
@@ -87,13 +84,20 @@ struct GameView: View {
                                 .textCase(.uppercase)
                             
                             HStack {
-                                ForEach(0..<4) { _ in
-                                    ItemCellView(item: .keys, isRoom: true)
+                                ForEach(gameViewModel.rooms(of: .double)) { room in
+                                    RoomCellView(
+                                        roomViewModel: room,
+                                        dragInfo: $dragInfo
+                                    )
+                                    .id(room.id)
+                                    .onDrop(of: ["public.text"], isTargeted: nil) { providers, location in
+                                        return handleDrop(for: room, providers: providers)
+                                    }
                                 }
                             }
                         }
                         
-                        // Luxury rooms
+                        // Luxury Rooms
                         VStack {
                             Text("luxury")
                                 .font(.system(size: 12, weight: .bold, design: .default))
@@ -101,35 +105,74 @@ struct GameView: View {
                                 .textCase(.uppercase)
                             
                             HStack {
-                                ForEach(0..<2) { _ in
-                                    ItemCellView(item: .keys, isRoom: true)
+                                ForEach(gameViewModel.rooms(of: .luxury)) { room in
+                                    RoomCellView(
+                                        roomViewModel: room,
+                                        dragInfo: $dragInfo
+                                    )
+                                    .id(room.id)
+                                    .onDrop(of: ["public.text"], isTargeted: nil) { providers, location in
+                                        return handleDrop(for: room, providers: providers)
+                                    }
                                 }
                             }
                         }
                     }
                 }
-                .frame(maxWidth: 450)
+                .frame(maxWidth: 400)
                 
                 Spacer()
                 Spacer()
                 Spacer()
             }
             
-            // MARK: Client
+            // Левая часть - гость внизу
             VStack {
                 Spacer()
                 
-                HStack {
-                    Image(.youngCouple)
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 300)
-                        .offset(x: -80, y: 180)
-                    
-                    Spacer()
+                if let guest = gameViewModel.currentGuest {
+                    GuestView(guest: guest)
+                        .offset(x: -60, y: 80) // гость наполовину скрыт
                 }
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            
+            // Правая часть - инструменты посередине
+            VStack {
+                Spacer()
+                
+                // Контейнеры с инструментами
+                VStack(spacing: 6) {
+                    ToolsContainerView(
+                        type: .food,
+                        gameViewModel: gameViewModel,
+                        dragInfo: $dragInfo
+                    )
+                    
+                    ToolsContainerView(
+                        type: .cleaning,
+                        gameViewModel: gameViewModel,
+                        dragInfo: $dragInfo
+                    )
+                }
+                
+                Spacer()
+            }
+            .frame(maxWidth: .infinity, alignment: .trailing)
+            .padding(.trailing, 8)
+            
+            // Перетаскиваемый элемент
+            if let info = dragInfo, info.isDragging {
+                DraggedItemView(dragInfo: info)
+                    .onDisappear {
+                        // При исчезновении элемента сбрасываем dragInfo
+                        DispatchQueue.main.async {
+                            self.dragInfo = nil
+                        }
+                    }
+            }
         }
+        .ignoresSafeArea(edges: .bottom) // Чтобы гость мог заходить за нижний край
         .navigationBarBackButtonHidden(true)
         .onAppear {
             gameViewModel.startGame()
@@ -137,9 +180,49 @@ struct GameView: View {
         .onDisappear {
             gameViewModel.resetGame()
         }
+        .overlay {
+            if isPausePresented {
+                PauseView(isPresented: $isPausePresented)
+                    .environmentObject(gameViewModel)
+            }
+        }
+    }
+    
+    private func handleDropOnGuest(providers: [NSItemProvider]) -> Bool {
+        guard let info = dragInfo,
+              case .key(_) = info.type,
+              let roomNumber = info.roomNumber,
+              let room = gameViewModel.rooms.first(where: { $0.roomNumber == roomNumber }),
+              let guest = gameViewModel.currentGuest,
+              !guest.hasLeft else {
+            return false
+        }
+        
+        // Проверяем, соответствует ли тип комнаты желанию гостя
+        let result = gameViewModel.checkInGuest(to: room)
+        dragInfo = nil
+        return result
+    }
+    
+    private func handleDrop(for room: RoomViewModel, providers: [NSItemProvider]) -> Bool {
+        guard let info = dragInfo else { return false }
+        
+        if case .bell = info.type, room.status == .needsFood {
+            let result = gameViewModel.serveFood(to: room)
+            dragInfo = nil
+            return result
+        }
+        else if case .brush = info.type, room.status == .dirty {
+            let result = gameViewModel.cleanRoom(roomViewModel: room)
+            dragInfo = nil
+            return result
+        }
+        
+        return false
     }
 }
 
+// MARK: - Previews
 #Preview {
     GameView()
         .environmentObject(GameViewModel())
