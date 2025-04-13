@@ -24,7 +24,10 @@ class RoomViewModel: ObservableObject, Identifiable {
     var didCompleteCleaningRoom: ((RoomViewModel) -> Void)?
     private var serviceRequestTimer: AnyCancellable?
     
-    init(room: Room) {
+    // Для инструментов
+    private weak var gameViewModel: GameViewModel?
+    
+    init(room: Room, gameViewModel: GameViewModel? = nil) {
         self.id = room.id
         self.roomNumber = room.number
         self.roomType = room.type
@@ -32,6 +35,7 @@ class RoomViewModel: ObservableObject, Identifiable {
         self.currentGuest = room.currentGuest
         self.stayTimeRemaining = room.stayTimeRemaining
         self.cleaningTimeRemaining = room.cleaningTimeRemaining
+        self.gameViewModel = gameViewModel
     }
     
     func canAccommodate(guest: Guest) -> Bool {
@@ -70,16 +74,29 @@ class RoomViewModel: ObservableObject, Identifiable {
     }
     
     func serveFood() -> Bool {
+        // Проверка доступности колокольчика
+        guard let gameViewModel = gameViewModel, gameViewModel.foodToolCooldown <= 0 else { return false }
+        
+        // Проверка, нужна ли еда
         guard status == .needsFood else { return false }
         
+        // Запуск кулдауна
+        gameViewModel.foodToolCooldown = GameConstants.toolCooldownTime
+        
+        // Обслуживание
         status = .occupied
         needsService = false
         return true
     }
     
     func cleanRoom() -> Bool {
+        guard let gameViewModel = gameViewModel, gameViewModel.cleaningToolCooldown <= 0 else { return false }
+        
         // Очистка занятой грязной комнаты
         if status == .dirty && currentGuest != nil {
+            // Запуск кулдауна
+            gameViewModel.cleaningToolCooldown = GameConstants.toolCooldownTime
+            
             status = .occupied
             needsService = false
             return true
@@ -87,6 +104,9 @@ class RoomViewModel: ObservableObject, Identifiable {
         
         // Очистка пустой грязной комнаты
         if status == .dirty && currentGuest == nil {
+            // Запуск кулдауна
+            gameViewModel.cleaningToolCooldown = GameConstants.toolCooldownTime
+            
             cleaningTimeRemaining = GameConstants.roomCleaningTime
             return true
         }
@@ -145,5 +165,10 @@ class RoomViewModel: ObservableObject, Identifiable {
         cleaningTimeRemaining = nil
         needsService = false
         serviceRequestTimer?.cancel()
+    }
+    
+    // Привязка к GameViewModel
+    func setGameViewModel(_ viewModel: GameViewModel) {
+        self.gameViewModel = viewModel
     }
 }

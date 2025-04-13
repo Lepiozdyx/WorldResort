@@ -9,7 +9,7 @@ import SwiftUI
 
 struct PauseView: View {
     @EnvironmentObject var gameViewModel: GameViewModel
-    @Binding var isPresented: Bool
+    @Binding var appState: AppState
     
     var body: some View {
         ZStack {
@@ -22,9 +22,9 @@ struct PauseView: View {
                     .foregroundStyle(.white)
                 
                 Button {
-                    // Снимаем с паузы и закрываем оверлей
+                    // Снимаем с паузы и возвращаемся в игру
                     gameViewModel.togglePause()
-                    isPresented = false
+                    appState = .game
                 } label: {
                     ActionView(name: .mainRectangle, text: "Resume", maxWidth: 220, maxHeight: 65)
                 }
@@ -32,6 +32,8 @@ struct PauseView: View {
                 
                 Button {
                     // Останавливаем игру, обнуляем состояния, выходим в главное меню
+                    gameViewModel.resetGame()
+                    appState = .menu
                 } label: {
                     ActionView(name: .mainRectangle, text: "Menu", maxWidth: 220, maxHeight: 65)
                 }
@@ -47,8 +49,7 @@ struct PauseView: View {
     }
 }
 
-// MARK: - Previews
 #Preview {
-    PauseView(isPresented: .constant(true))
+    PauseView(appState: .constant(.pause))
         .environmentObject(GameViewModel())
 }

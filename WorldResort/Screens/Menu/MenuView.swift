@@ -8,56 +8,51 @@
 import SwiftUI
 
 struct MenuView: View {
-    @StateObject private var gameViewModel = GameViewModel()
+    @EnvironmentObject private var gameViewModel: GameViewModel
+    @Binding var appState: AppState
     
     var body: some View {
-        NavigationView {
-            ZStack(alignment: .bottom) {
-                MainBackView()
+        ZStack(alignment: .bottom) {
+            MainBackView()
+            
+            VStack(spacing: 20) {
+                // Ежедневное задание
+                ActionView(name: .greenCapsule, text: "accommodate 5 guests", maxWidth: 300, maxHeight: 70)
                 
-                VStack(spacing: 20) {
-                    // Ежедневное задание
-                    ActionView(name: .greenCapsule, text: "accommodate 5 guests", maxWidth: 300, maxHeight: 70)
-                    
-                    Spacer()
-                    
-                    // Кнопка Start
-                    NavigationLink {
-                        GameView()
-                            .environmentObject(gameViewModel)
-                    } label: {
-                        ActionView(name: .mainRectangle, text: "start", maxWidth: 180, maxHeight: 55)
-                    }
+                Spacer()
+                
+                // Кнопка Start
+                Button {
+                    gameViewModel.resetGame()
+                    gameViewModel.startGame()
+                    appState = .game
+                } label: {
+                    ActionView(name: .mainRectangle, text: "start", maxWidth: 180, maxHeight: 55)
+                }
 
-                    // Нижний ряд кнопок
-                    HStack(spacing: 10) {
-                        NavigationLink {
-                            Text("Progress Screen")
-                                .foregroundStyle(.white)
-                        } label: {
-                            ActionView(name: .mainRectangle, text: "progress", maxWidth: 180, maxHeight: 55)
-                        }
-                        
-                        NavigationLink {
-                            Text("Settings Screen")
-                                .foregroundStyle(.white)
-                        } label: {
-                            ActionView(name: .mainRectangle, text: "settings", maxWidth: 180, maxHeight: 55)
-                        }
-                        
-                        NavigationLink {
-                            Text("Shop Screen")
-                                .foregroundStyle(.white)
-                        } label: {
-                            ActionView(name: .mainRectangle, text: "shop", maxWidth: 180, maxHeight: 55)
-                        }
+                // Нижний ряд кнопок
+                HStack(spacing: 10) {
+                    Button {
+                        // Navigate to Progress Screen
+                    } label: {
+                        ActionView(name: .mainRectangle, text: "progress", maxWidth: 180, maxHeight: 55)
+                    }
+                    
+                    Button {
+                        // Navigate to Settings Screen
+                    } label: {
+                        ActionView(name: .mainRectangle, text: "settings", maxWidth: 180, maxHeight: 55)
+                    }
+                    
+                    Button {
+                        // Navigate to Shop Screen
+                    } label: {
+                        ActionView(name: .mainRectangle, text: "shop", maxWidth: 180, maxHeight: 55)
                     }
                 }
-                .padding()
             }
+            .padding()
         }
-        .navigationViewStyle(.stack)
-        .navigationBarBackButtonHidden(true)
         .onAppear {
             gameViewModel.resetGame()
         }
@@ -65,5 +60,6 @@ struct MenuView: View {
 }
 
 #Preview {
-    MenuView()
+    MenuView(appState: .constant(.menu))
+        .environmentObject(GameViewModel())
 }

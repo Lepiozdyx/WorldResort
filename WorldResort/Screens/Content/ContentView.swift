@@ -8,14 +8,27 @@
 import SwiftUI
 
 struct ContentView: View {
+    @StateObject private var gameViewModel = GameViewModel()
+    @State private var appState: AppState = .menu
+    
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
+        ZStack {
+            switch appState {
+            case .menu:
+                MenuView(appState: $appState)
+                    .environmentObject(gameViewModel)
+            case .game:
+                GameView(appState: $appState)
+                    .environmentObject(gameViewModel)
+            case .pause:
+                GameView(appState: $appState)
+                    .environmentObject(gameViewModel)
+                    .overlay {
+                        PauseView(appState: $appState)
+                            .environmentObject(gameViewModel)
+                    }
+            }
         }
-        .padding()
     }
 }
 

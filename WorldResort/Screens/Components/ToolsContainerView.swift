@@ -10,7 +10,7 @@ import SwiftUI
 struct ToolsContainerView: View {
     let type: ToolType
     @ObservedObject var gameViewModel: GameViewModel
-    @Binding var dragInfo: DragInfo?
+    @ObservedObject var draggableState: DraggableState
     
     enum ToolType {
         case food
@@ -29,6 +29,13 @@ struct ToolsContainerView: View {
             case .cleaning: return .cleaningBrush
             }
         }
+        
+        var dragType: DraggableState.DragType {
+            switch self {
+            case .food: return .bell
+            case .cleaning: return .brush
+            }
+        }
     }
     
     var body: some View {
@@ -43,13 +50,13 @@ struct ToolsContainerView: View {
                 ToolCellView(
                     type: type,
                     cooldown: getCooldown(),
-                    dragInfo: $dragInfo
+                    draggableState: draggableState
                 )
                 
                 ToolCellView(
                     type: type,
                     cooldown: getCooldown(),
-                    dragInfo: $dragInfo
+                    draggableState: draggableState
                 )
             }
         }
@@ -74,7 +81,7 @@ struct ToolsContainerView: View {
 struct ToolCellView: View {
     let type: ToolsContainerView.ToolType
     let cooldown: TimeInterval
-    @Binding var dragInfo: DragInfo?
+    @ObservedObject var draggableState: DraggableState
     
     var body: some View {
         ZStack {
@@ -93,28 +100,25 @@ struct ToolCellView: View {
                     .foregroundStyle(.white)
             } else {
                 // Показываем инструмент, который можно перетаскивать
-                switch type {
-                case .food:
-                    DraggableBellView(
-                        dragInfo: $dragInfo,
-                        isDisabled: cooldown > 0
+                Image(type.image)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 35)
+                    .opacity(cooldown > 0 ? 0.5 : 1.0)
+                    .draggable(
+                        type: type.dragType,
+                        isEnabled: cooldown <= 0,
+                        draggableState: draggableState
                     )
-                case .cleaning:
-                    DraggableBrushView(
-                        dragInfo: $dragInfo,
-                        isDisabled: cooldown > 0
-                    )
-                }
             }
         }
     }
 }
 
-// MARK: - Previews
 #Preview {
     ToolsContainerView(
         type: .food,
         gameViewModel: GameViewModel(),
-        dragInfo: .constant(nil)
+        draggableState: DraggableState()
     )
 }

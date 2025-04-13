@@ -9,12 +9,14 @@ import SwiftUI
 
 struct GuestView: View {
     let guest: Guest
-    var dropTarget: CGRect = .zero
+    @ObservedObject var draggableState: DraggableState
+    let onRoomKeyDropped: (Int, RoomType) -> Bool
     
     var body: some View {
         VStack(spacing: 0) {
             wishBubbleView
                 .offset(y: 20)
+                .zIndex(1) // Поместить облачко поверх для лучшего улавливания
             
             Image(guest.image)
                 .resizable()
@@ -29,30 +31,30 @@ struct GuestView: View {
             Image(.wishes)
                 .resizable()
                 .frame(width: 150, height: 120)
-                .overlay {
+                .overlay(
                     Text("\(guest.type.preferredRoomType.rawValue) room please!")
                         .font(.system(size: 16))
                         .foregroundStyle(.black)
                         .multilineTextAlignment(.center)
                         .offset(y: -15)
                         .padding(.horizontal, 8)
+                )
+                .dropTarget(draggableState: draggableState) { dragType in
+                    switch dragType {
+                    case let .key(roomNumber, roomType):
+                        return onRoomKeyDropped(roomNumber, roomType)
+                    default:
+                        return false
+                    }
                 }
         }
     }
-    
-//    func getWishBubbleFrame(in geometry: GeometryProxy) -> CGRect {
-//        // Создаем область для определения попадания при перетаскивании
-//        let frame = geometry.frame(in: .global)
-//        return CGRect(
-//            x: frame.origin.x,
-//            y: frame.origin.y - 70,
-//            width: 150,
-//            height: 100
-//        )
-//    }
 }
 
-// MARK: - Previews
 #Preview {
-    GuestView(guest: Guest(type: .business))
+    GuestView(
+        guest: Guest(type: .business),
+        draggableState: DraggableState(),
+        onRoomKeyDropped: { _, _ in return true }
+    )
 }

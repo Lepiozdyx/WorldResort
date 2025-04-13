@@ -9,9 +9,8 @@ import SwiftUI
 
 struct GameView: View {
     @EnvironmentObject private var gameViewModel: GameViewModel
-    @State private var dragInfo: DragInfo?
-    @State private var isPausePresented = false
-    @State private var guestWishRect: CGRect = .zero
+    @Binding var appState: AppState
+    @StateObject private var draggableState = DraggableState()
     
     var body: some View {
         ZStack {
@@ -20,7 +19,7 @@ struct GameView: View {
             
             // Верхняя панель (пауза и монеты)
             TopBarView(amount: gameViewModel.coinBalance) {
-                isPausePresented = true
+                appState = .pause
                 gameViewModel.togglePause()
             }
             
@@ -42,12 +41,9 @@ struct GameView: View {
                                 ForEach(gameViewModel.rooms(of: .single)) { room in
                                     RoomCellView(
                                         roomViewModel: room,
-                                        dragInfo: $dragInfo
+                                        draggableState: draggableState
                                     )
                                     .id(room.id)
-                                    .onDrop(of: ["public.text"], isTargeted: nil) { providers, location in
-                                        return handleDrop(for: room, providers: providers)
-                                    }
                                 }
                             }
                         }
@@ -63,12 +59,9 @@ struct GameView: View {
                                 ForEach(gameViewModel.rooms(of: .family)) { room in
                                     RoomCellView(
                                         roomViewModel: room,
-                                        dragInfo: $dragInfo
+                                        draggableState: draggableState
                                     )
                                     .id(room.id)
-                                    .onDrop(of: ["public.text"], isTargeted: nil) { providers, location in
-                                        return handleDrop(for: room, providers: providers)
-                                    }
                                 }
                             }
                         }
@@ -87,12 +80,9 @@ struct GameView: View {
                                 ForEach(gameViewModel.rooms(of: .double)) { room in
                                     RoomCellView(
                                         roomViewModel: room,
-                                        dragInfo: $dragInfo
+                                        draggableState: draggableState
                                     )
                                     .id(room.id)
-                                    .onDrop(of: ["public.text"], isTargeted: nil) { providers, location in
-                                        return handleDrop(for: room, providers: providers)
-                                    }
                                 }
                             }
                         }
@@ -108,12 +98,9 @@ struct GameView: View {
                                 ForEach(gameViewModel.rooms(of: .luxury)) { room in
                                     RoomCellView(
                                         roomViewModel: room,
-                                        dragInfo: $dragInfo
+                                        draggableState: draggableState
                                     )
                                     .id(room.id)
-                                    .onDrop(of: ["public.text"], isTargeted: nil) { providers, location in
-                                        return handleDrop(for: room, providers: providers)
-                                    }
                                 }
                             }
                         }
@@ -131,8 +118,18 @@ struct GameView: View {
                 Spacer()
                 
                 if let guest = gameViewModel.currentGuest {
-                    GuestView(guest: guest)
-                        .offset(x: -60, y: 80) // гость наполовину скрыт
+                    GuestView(
+                        guest: guest,
+                        draggableState: draggableState,
+                        onRoomKeyDropped: { roomNumber, roomType in
+                            // Обработка сброса ключа на гостя
+                            if let room = gameViewModel.rooms.first(where: { $0.roomNumber == roomNumber }) {
+                                return gameViewModel.checkInGuest(to: room)
+                            }
+                            return false
+                        }
+                    )
+                    .offset(x: -60, y: 80) // гость наполовину скрыт
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -146,13 +143,13 @@ struct GameView: View {
                     ToolsContainerView(
                         type: .food,
                         gameViewModel: gameViewModel,
-                        dragInfo: $dragInfo
+                        draggableState: draggableState
                     )
                     
                     ToolsContainerView(
                         type: .cleaning,
                         gameViewModel: gameViewModel,
-                        dragInfo: $dragInfo
+                        draggableState: draggableState
                     )
                 }
                 
@@ -161,69 +158,25 @@ struct GameView: View {
             .frame(maxWidth: .infinity, alignment: .trailing)
             .padding(.trailing, 8)
             
-            // Перетаскиваемый элемент
-            if let info = dragInfo, info.isDragging {
-                DraggedItemView(dragInfo: info)
-                    .onDisappear {
-                        // При исчезновении элемента сбрасываем dragInfo
-                        DispatchQueue.main.async {
-                            self.dragInfo = nil
-                        }
-                    }
-            }
+            // Слой с перетаскиваемыми элементами (над всем остальным)
+            DragOverlayView(draggableState: draggableState)
         }
         .ignoresSafeArea(edges: .bottom) // Чтобы гость мог заходить за нижний край
-        .navigationBarBackButtonHidden(true)
         .onAppear {
-            gameViewModel.startGame()
-        }
-        .onDisappear {
-            gameViewModel.resetGame()
-        }
-        .overlay {
-            if isPausePresented {
-                PauseView(isPresented: $isPausePresented)
-                    .environmentObject(gameViewModel)
+            if appState != .pause {
+                gameViewModel.startGame()
             }
         }
-    }
-    
-    private func handleDropOnGuest(providers: [NSItemProvider]) -> Bool {
-        guard let info = dragInfo,
-              case .key(_) = info.type,
-              let roomNumber = info.roomNumber,
-              let room = gameViewModel.rooms.first(where: { $0.roomNumber == roomNumber }),
-              let guest = gameViewModel.currentGuest,
-              !guest.hasLeft else {
-            return false
+        .onDisappear {
+            if appState == .menu {
+                gameViewModel.resetGame()
+            }
         }
-        
-        // Проверяем, соответствует ли тип комнаты желанию гостя
-        let result = gameViewModel.checkInGuest(to: room)
-        dragInfo = nil
-        return result
-    }
-    
-    private func handleDrop(for room: RoomViewModel, providers: [NSItemProvider]) -> Bool {
-        guard let info = dragInfo else { return false }
-        
-        if case .bell = info.type, room.status == .needsFood {
-            let result = gameViewModel.serveFood(to: room)
-            dragInfo = nil
-            return result
-        }
-        else if case .brush = info.type, room.status == .dirty {
-            let result = gameViewModel.cleanRoom(roomViewModel: room)
-            dragInfo = nil
-            return result
-        }
-        
-        return false
     }
 }
 
 // MARK: - Previews
 #Preview {
-    GameView()
+    GameView(appState: .constant(.game))
         .environmentObject(GameViewModel())
 }

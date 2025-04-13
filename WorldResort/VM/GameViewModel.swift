@@ -33,7 +33,7 @@ class GameViewModel: ObservableObject {
     
     private func setupRooms() {
         gameState.rooms.forEach { room in
-            let roomViewModel = RoomViewModel(room: room)
+            let roomViewModel = RoomViewModel(room: room, gameViewModel: self)
             roomViewModel.didCheckoutGuest = { [weak self] guest in
                 self?.handleGuestCheckout(guest: guest)
             }
@@ -217,4 +217,4 @@ class GameViewModel: ObservableObject {
         
         return success
     }
-}
+}   

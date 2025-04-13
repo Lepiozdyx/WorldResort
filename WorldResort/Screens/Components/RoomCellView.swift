@@ -9,7 +9,7 @@ import SwiftUI
 
 struct RoomCellView: View {
     @ObservedObject var roomViewModel: RoomViewModel
-    @Binding var dragInfo: DragInfo?
+    @ObservedObject var draggableState: DraggableState
     
     var body: some View {
         VStack {
@@ -24,6 +24,20 @@ struct RoomCellView: View {
                 
                 roomContent
             }
+            .dropTarget(
+                isActive: roomViewModel.status == .dirty || roomViewModel.status == .needsFood,
+                draggableState: draggableState
+            ) { dragType in
+                // Обработка сброса щетки или колокольчика на комнату
+                switch dragType {
+                case .brush:
+                    return handleBrushDrop()
+                case .bell:
+                    return handleBellDrop()
+                default:
+                    return false
+                }
+            }
             
             Text("\(roomViewModel.roomNumber)")
                 .font(.system(size: 12, weight: .bold, design: .default))
@@ -35,11 +49,14 @@ struct RoomCellView: View {
     private var roomContent: some View {
         if roomViewModel.status == .available {
             // Показываем ключ только для доступной комнаты
-            DraggableKeyView(
-                roomType: roomViewModel.roomType,
-                roomNumber: roomViewModel.roomNumber,
-                dragInfo: $dragInfo
-            )
+            Image(.keys)
+                .resizable()
+                .scaledToFit()
+                .frame(width: 35)
+                .draggable(
+                    type: .key(roomNumber: roomViewModel.roomNumber, roomType: roomViewModel.roomType),
+                    draggableState: draggableState
+                )
         } else if let timeRemaining = roomViewModel.stayTimeRemaining, timeRemaining > 0 {
             // Показываем таймер проживания
             Text("\(Int(timeRemaining))")
@@ -52,11 +69,21 @@ struct RoomCellView: View {
                 .foregroundStyle(.white)
         }
     }
+    
+    private func handleBrushDrop() -> Bool {
+        // Вызываем метод очистки комнаты из RoomViewModel
+        return roomViewModel.cleanRoom()
+    }
+    
+    private func handleBellDrop() -> Bool {
+        // Вызываем метод подачи еды из RoomViewModel
+        return roomViewModel.serveFood()
+    }
 }
 
-// MARK: - Previews
 #Preview {
     RoomCellView(
-        roomViewModel: RoomViewModel(room: Room(type: .luxury, number: 401)), dragInfo: .constant(nil)
+        roomViewModel: RoomViewModel(room: Room(type: .luxury, number: 401)),
+        draggableState: DraggableState()
     )
 }
