@@ -11,4 +11,8 @@ enum AppState {
     case menu
     case game
     case pause
+    case settings
+    case rules
+    case shop
+    case progress
 }

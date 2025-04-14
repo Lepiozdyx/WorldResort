@@ -10,6 +10,8 @@ import SwiftUI
 struct ContentView: View {
     @StateObject private var gameViewModel = GameViewModel()
     @State private var appState: AppState = .menu
+    @StateObject private var manager = SettingsManager.shared
+    @Environment(\.scenePhase) private var scenePhase
     
     var body: some View {
         ZStack {
@@ -27,6 +29,29 @@ struct ContentView: View {
                         PauseView(appState: $appState)
                             .environmentObject(gameViewModel)
                     }
+            case .settings:
+                SettingsView(appState: $appState)
+            case .rules:
+                RulesView(appState: $appState)
+            case .shop:
+                Text("Shop view")
+            case .progress:
+                Text("Progress view")
+            }
+        }
+        .onAppear {
+            if manager.isMusicOn {
+                manager.playMusic()
+            }
+        }
+        .onChange(of: scenePhase) { newPhase in
+            switch newPhase {
+            case .active:
+                manager.playMusic()
+            case .background, .inactive:
+                manager.stopMusic()
+            @unknown default:
+                break
             }
         }
     }

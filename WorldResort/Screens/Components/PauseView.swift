@@ -18,8 +18,9 @@ struct PauseView: View {
             
             VStack(spacing: 30) {
                 Text("PAUSED")
-                    .font(.system(size: 32, weight: .bold))
+                    .font(.system(size: 40, weight: .bold, design: .default))
                     .foregroundStyle(.white)
+                    .textCase(.uppercase)
                 
                 Button {
                     // Снимаем с паузы и возвращаемся в игру

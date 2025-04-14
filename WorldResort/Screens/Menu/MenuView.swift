@@ -29,6 +29,7 @@ struct MenuView: View {
                 } label: {
                     ActionView(name: .mainRectangle, text: "start", maxWidth: 180, maxHeight: 55)
                 }
+                .soundButton()
 
                 // Нижний ряд кнопок
                 HStack(spacing: 10) {
@@ -37,18 +38,21 @@ struct MenuView: View {
                     } label: {
                         ActionView(name: .mainRectangle, text: "progress", maxWidth: 180, maxHeight: 55)
                     }
+                    .soundButton()
                     
                     Button {
-                        // Navigate to Settings Screen
+                        appState = .settings
                     } label: {
                         ActionView(name: .mainRectangle, text: "settings", maxWidth: 180, maxHeight: 55)
                     }
+                    .soundButton()
                     
                     Button {
                         // Navigate to Shop Screen
                     } label: {
                         ActionView(name: .mainRectangle, text: "shop", maxWidth: 180, maxHeight: 55)
                     }
+                    .soundButton()
                 }
             }
             .padding()
