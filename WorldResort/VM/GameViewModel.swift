@@ -320,4 +320,8 @@ class GameViewModel: ObservableObject {
         }
         return false
     }
+    
+    func purchaseItem(price: Int) -> Bool {
+        return bank.deductCoins(price)
+    }
 }

@@ -47,7 +47,7 @@ struct MenuView: View {
                     .soundButton()
                     
                     Button {
-                        // Navigate to Shop Screen
+                        appState = .shop
                     } label: {
                         ActionView(name: .mainRectangle, text: "shop", maxWidth: 180, maxHeight: 55)
                     }

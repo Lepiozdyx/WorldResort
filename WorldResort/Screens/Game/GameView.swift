@@ -11,6 +11,7 @@ struct GameView: View {
     @EnvironmentObject private var gameViewModel: GameViewModel
     @Binding var appState: AppState
     @StateObject private var draggableState = DraggableState()
+    @StateObject private var shopManager = ShopManager.shared
     
     var body: some View {
         ZStack {
@@ -21,6 +22,21 @@ struct GameView: View {
             TopBarView(amount: gameViewModel.coinBalance) {
                 appState = .pause
                 gameViewModel.togglePause()
+            }
+            
+            VStack {
+                Spacer()
+                Spacer()
+                Spacer()
+                HStack {
+                    ForEach(shopManager.items.filter { $0.isPurchased }) { item in
+                        Image(item.image)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 100)
+                    }
+                }
+                Spacer()
             }
             
             // Центральная часть с комнатами
@@ -129,7 +145,7 @@ struct GameView: View {
                             return false
                         }
                     )
-                    .offset(x: -60, y: 80) // гость наполовину скрыт
+                    .offset(x: -40, y: 80) // гость наполовину скрыт
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)

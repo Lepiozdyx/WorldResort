@@ -34,7 +34,8 @@ struct ContentView: View {
             case .rules:
                 RulesView(appState: $appState)
             case .shop:
-                Text("Shop view")
+                ShopView(appState: $appState)
+                    .environmentObject(gameViewModel)
             case .progress:
                 ProgressScreenView(appState: $appState)
             }
