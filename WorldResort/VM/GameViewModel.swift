@@ -20,6 +20,7 @@ class GameViewModel: ObservableObject {
     private var gameState = GameState()
     private var bank = BankModel()
     private let achievementManager = AchievementManager.shared
+    private let dailyTaskManager = DailyTaskManager.shared
     
     private var newGuestTimer: AnyCancellable?
     private var timersCancellable = Set<AnyCancellable>()
@@ -195,6 +196,9 @@ class GameViewModel: ObservableObject {
             // Отслеживание достижений
             achievementManager.updateGuestCheckedInCount(guestType: guest.type)
             
+            // Обновляем прогресс ежедневного задания
+            dailyTaskManager.guestAccommodated()
+            
             // Отслеживание идеальных заселений (без отказов)
             perfectCheckInsInARow += 1
             if perfectCheckInsInARow >= 5 {
@@ -240,6 +244,10 @@ class GameViewModel: ObservableObject {
         
         // Добавляем монеты в банк
         bank.addCoins(totalCoins)
+        
+        // Обновляем прогресс ежедневного задания
+        dailyTaskManager.coinsCollected(amount: totalCoins)
+        dailyTaskManager.clientKept()
     }
     
     func handleRoomCleaningCompleted(roomVM: RoomViewModel) {
@@ -249,6 +257,9 @@ class GameViewModel: ObservableObject {
     func handleGuestLeft() {
         currentGuest = nil
         scheduleNextGuest()
+        
+        // Обновляем прогресс ежедневного задания
+        dailyTaskManager.clientLost()
         
         // Сброс счетчика идеальных заселений при уходе гостя без обслуживания
         perfectCheckInsInARow = 0
@@ -272,6 +283,9 @@ class GameViewModel: ObservableObject {
             
             // Отслеживание достижения
             achievementManager.updateServiceProvidedCount(service: .food)
+            
+            // Обновляем прогресс ежедневного задания
+            dailyTaskManager.serviceCompleted()
         }
         
         return success
@@ -290,8 +304,20 @@ class GameViewModel: ObservableObject {
             
             // Отслеживание достижения
             achievementManager.updateServiceProvidedCount(service: .cleaning)
+            
+            // Обновляем прогресс ежедневного задания
+            dailyTaskManager.serviceCompleted()
         }
         
         return success
+    }
+    
+    // Метод для получения награды за выполнение ежедневного задания
+    func addCoinsFromDailyTask() -> Bool {
+        if let reward = dailyTaskManager.claimReward() {
+            bank.addCoins(reward)
+            return true
+        }
+        return false
     }
 }

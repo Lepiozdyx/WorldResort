@@ -19,5 +19,6 @@ struct GameConstants {
     static let music: String = "theme"
     static let format: String = "mp3"
     
-    static let achievementKey: String = "worldResort.achievements"
+    static let achievementKey: String = "achievementsKey"
+    static let dailyTaskKey: String = "dailyTaskKey"
 }

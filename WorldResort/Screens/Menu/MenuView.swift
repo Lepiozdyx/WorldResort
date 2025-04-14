@@ -16,8 +16,7 @@ struct MenuView: View {
             MainBackView()
             
             VStack(spacing: 20) {
-                // Ежедневное задание
-                ActionView(name: .greenCapsule, text: "accommodate 5 guests", maxWidth: 300, maxHeight: 70)
+                DailyTaskView()
                 
                 Spacer()
                 
