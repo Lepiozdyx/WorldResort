@@ -19,11 +19,18 @@ class GameViewModel: ObservableObject {
     
     private var gameState = GameState()
     private var bank = BankModel()
+    private let achievementManager = AchievementManager.shared
     
     private var newGuestTimer: AnyCancellable?
     private var timersCancellable = Set<AnyCancellable>()
     private var gameTimer: AnyCancellable?
     private var lastUpdateTime: Date = Date()
+    
+    // Переменные для отслеживания прогресса достижений
+    private var consecutiveLevelsWithoutClientLeaving = 0
+    private var guestsCheckedInCurrentMinute = 0
+    private var guestCheckInTimeTracker: Date?
+    private var perfectCheckInsInARow = 0
     
     init() {
         setupRooms()
@@ -49,6 +56,8 @@ class GameViewModel: ObservableObject {
         bank.coinBalance
             .sink { [weak self] balance in
                 self?.coinBalance = balance
+                // Обновляем достижения связанные с монетами
+                self?.achievementManager.updateCoinsEarned(amount: balance)
             }
             .store(in: &timersCancellable)
     }
@@ -128,6 +137,12 @@ class GameViewModel: ObservableObject {
         // Сброс кулдаунов инструментов
         foodToolCooldown = 0
         cleaningToolCooldown = 0
+        
+        // Сброс счетчиков для достижений
+        consecutiveLevelsWithoutClientLeaving = 0
+        guestsCheckedInCurrentMinute = 0
+        guestCheckInTimeTracker = nil
+        perfectCheckInsInARow = 0
     }
     
     func generateNewGuest() {
@@ -157,16 +172,56 @@ class GameViewModel: ObservableObject {
     func checkInGuest(to roomViewModel: RoomViewModel) -> Bool {
         guard let guest = currentGuest, !guest.hasLeft else { return false }
         
+        // Отслеживание для достижения "Мастер скорости"
+        if guestCheckInTimeTracker == nil {
+            guestCheckInTimeTracker = Date()
+            guestsCheckedInCurrentMinute = 0
+        }
+        
+        // Проверка, прошла ли минута с первого заселения
+        if let startTime = guestCheckInTimeTracker, Date().timeIntervalSince(startTime) > 60 {
+            // Сброс счетчика для следующей минуты
+            guestCheckInTimeTracker = Date()
+            guestsCheckedInCurrentMinute = 0
+        }
+        
         // Проверка, может ли комната принять гостя
         if roomViewModel.canAccommodate(guest: guest) {
             // Заселение прошло успешно
             roomViewModel.checkInGuest(guest)
             currentGuest = nil
             scheduleNextGuest()
+            
+            // Отслеживание достижений
+            achievementManager.updateGuestCheckedInCount(guestType: guest.type)
+            
+            // Отслеживание идеальных заселений (без отказов)
+            perfectCheckInsInARow += 1
+            if perfectCheckInsInARow >= 5 {
+                achievementManager.updatePerfectCheckIn()
+            }
+            
+            // Отслеживание достижения по скорости
+            guestsCheckedInCurrentMinute += 1
+            if let startTime = guestCheckInTimeTracker {
+                let timeElapsed = Date().timeIntervalSince(startTime)
+                achievementManager.checkSpeedMasterAchievement(
+                    guestsCheckedIn: guestsCheckedInCurrentMinute,
+                    timeElapsed: timeElapsed
+                )
+            }
+            
+            // Проверка достижения "Король люксов"
+            let filledLuxuryRooms = rooms.filter {
+                $0.roomType == .luxury && $0.status == .occupied
+            }.count
+            achievementManager.checkLuxuryKingAchievement(filledLuxuryRooms: filledLuxuryRooms)
+            
             return true
         }
         
         // Заселение не удалось (неправильный тип комнаты)
+        perfectCheckInsInARow = 0 // Сброс счетчика идеальных заселений
         return false
     }
     
@@ -180,6 +235,7 @@ class GameViewModel: ObservableObject {
         if tips > 0 {
             // Тут можно добавить визуальное уведомление о чаевых
             print("Получены чаевые: \(tips) монет!")
+            achievementManager.updateTipsReceived()
         }
         
         // Добавляем монеты в банк
@@ -193,6 +249,10 @@ class GameViewModel: ObservableObject {
     func handleGuestLeft() {
         currentGuest = nil
         scheduleNextGuest()
+        
+        // Сброс счетчика идеальных заселений при уходе гостя без обслуживания
+        perfectCheckInsInARow = 0
+        consecutiveLevelsWithoutClientLeaving = 0
     }
     
     func rooms(of type: RoomType) -> [RoomViewModel] {
@@ -209,6 +269,9 @@ class GameViewModel: ObservableObject {
         if success {
             // Запуск кулдауна
             foodToolCooldown = GameConstants.toolCooldownTime
+            
+            // Отслеживание достижения
+            achievementManager.updateServiceProvidedCount(service: .food)
         }
         
         return success
@@ -224,8 +287,11 @@ class GameViewModel: ObservableObject {
         if success {
             // Запуск кулдауна
             cleaningToolCooldown = GameConstants.toolCooldownTime
+            
+            // Отслеживание достижения
+            achievementManager.updateServiceProvidedCount(service: .cleaning)
         }
         
         return success
     }
-}   
+}

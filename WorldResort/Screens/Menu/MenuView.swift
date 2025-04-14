@@ -34,7 +34,7 @@ struct MenuView: View {
                 // Нижний ряд кнопок
                 HStack(spacing: 10) {
                     Button {
-                        // Navigate to Progress Screen
+                        appState = .progress
                     } label: {
                         ActionView(name: .mainRectangle, text: "progress", maxWidth: 180, maxHeight: 55)
                     }

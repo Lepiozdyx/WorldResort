@@ -36,7 +36,7 @@ struct ContentView: View {
             case .shop:
                 Text("Shop view")
             case .progress:
-                Text("Progress view")
+                ProgressScreenView(appState: $appState)
             }
         }
         .onAppear {

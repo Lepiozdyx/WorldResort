@@ -18,4 +18,6 @@ struct GameConstants {
     static let sound: String = "sound"
     static let music: String = "theme"
     static let format: String = "mp3"
+    
+    static let achievementKey: String = "worldResort.achievements"
 }
