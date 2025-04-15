@@ -19,9 +19,15 @@ struct ContentView: View {
             case .menu:
                 MenuView(appState: $appState)
                     .environmentObject(gameViewModel)
+                    .onAppear {
+                        OrientationManager.shared.lockLandscape()
+                    }
             case .game:
                 GameView(appState: $appState)
                     .environmentObject(gameViewModel)
+                    .onAppear {
+                        OrientationManager.shared.lockLandscape()
+                    }
             case .pause:
                 GameView(appState: $appState)
                     .environmentObject(gameViewModel)
@@ -31,13 +37,25 @@ struct ContentView: View {
                     }
             case .settings:
                 SettingsView(appState: $appState)
+                    .onAppear {
+                        OrientationManager.shared.lockLandscape()
+                    }
             case .rules:
                 RulesView(appState: $appState)
+                    .onAppear {
+                        OrientationManager.shared.lockLandscape()
+                    }
             case .shop:
                 ShopView(appState: $appState)
                     .environmentObject(gameViewModel)
+                    .onAppear {
+                        OrientationManager.shared.lockLandscape()
+                    }
             case .progress:
                 ProgressScreenView(appState: $appState)
+                    .onAppear {
+                        OrientationManager.shared.lockLandscape()
+                    }
             }
         }
         .onAppear {
