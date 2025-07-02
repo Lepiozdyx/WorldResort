@@ -19,9 +19,18 @@ struct ShopView: View {
             
             MenuCircleButtonView(appState: $appState)
             
+            VStack {
+                HStack {
+                    Spacer()
+                    CoinCounterView(amount: gameViewModel.coinBalance)
+                }
+                Spacer()
+            }
+            .padding()
+            
             Image(.mainRectangle)
                 .resizable()
-                .frame(width: 500, height: 300)
+                .frame(width: 500, height: 270)
             
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack {
