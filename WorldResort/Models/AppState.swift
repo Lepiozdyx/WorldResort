@@ -15,4 +15,5 @@ enum AppState {
     case rules
     case shop
     case progress
+    case farm
 }

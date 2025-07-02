@@ -26,7 +26,7 @@ struct ShopView: View {
                 }
                 Spacer()
             }
-            .padding()
+            .padding(8)
             
             Image(.mainRectangle)
                 .resizable()

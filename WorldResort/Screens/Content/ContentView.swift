@@ -56,6 +56,12 @@ struct ContentView: View {
                     .onAppear {
                         OrientationManager.shared.lockLandscape()
                     }
+            case .farm:
+                FarmView(appState: $appState)
+                    .environmentObject(gameViewModel)
+                    .onAppear {
+                        OrientationManager.shared.lockLandscape()
+                    }
             }
         }
         .onAppear {
