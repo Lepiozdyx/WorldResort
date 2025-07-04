@@ -10,35 +10,69 @@ import Foundation
 @MainActor
 final class AppStateViewModel: ObservableObject {
     
-    enum AppSteps {
+    enum AppState {
         case stepOne
         case stepTwo
         case finalStep
     }
     
-    @Published private(set) var appState: AppSteps = .stepOne
+    @Published private(set) var appState: AppState = .stepOne
     let webManager: NetworkManager
+    
+    private var timeoutTask: Task<Void, Never>?
+    private let maxLoadingTime: TimeInterval = 10.0
     
     init(webManager: NetworkManager = NetworkManager()) {
         self.webManager = webManager
     }
     
     func stateCheck() {
-        Task {
-            if webManager.targetURL != nil {
-                appState = .stepTwo
-                return
-            }
-            
+        timeoutTask?.cancel()
+        
+        Task { @MainActor in
             do {
-                if try await webManager.checkInitialURL() {
-                    appState = .stepTwo
-                } else {
-                    appState = .finalStep
+                if webManager.worldresortURL != nil {
+                    updateState(.stepTwo)
+                    return
                 }
+                
+                let shouldShowWebView = try await webManager.checkInitialURL()
+                
+                if shouldShowWebView {
+                    updateState(.stepTwo)
+                } else {
+                    updateState(.finalStep)
+                }
+                
             } catch {
-                appState = .finalStep
+                updateState(.finalStep)
             }
         }
+        
+        startTimeoutTask()
+    }
+    
+    private func updateState(_ newState: AppState) {
+        timeoutTask?.cancel()
+        timeoutTask = nil
+        
+        appState = newState
+    }
+    
+    private func startTimeoutTask() {
+        timeoutTask = Task { @MainActor in
+            do {
+                try await Task.sleep(nanoseconds: UInt64(maxLoadingTime * 1_000_000_000))
+                
+                if self.appState == .stepOne {
+                    self.appState = .finalStep
+                }
+            } catch {}
+        }
+    }
+    
+    deinit {
+        timeoutTask?.cancel()
     }
 }
+

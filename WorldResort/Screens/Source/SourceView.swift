@@ -16,7 +16,7 @@ struct SourceView: View {
             case .stepOne:
                 LoadingView()
             case .stepTwo:
-                if let url = state.webManager.targetURL {
+                if let url = state.webManager.worldresortURL {
                     WebViewManager(url: url, webManager: state.webManager)
                         .onAppear {
                             OrientationManager.shared.unlockOrientation()
@@ -29,9 +29,7 @@ struct SourceView: View {
                 }
             case .finalStep:
                 ContentView()
-                    .onAppear {
-                        OrientationManager.shared.lockLandscape()
-                    }
+                    .preferredColorScheme(.light)
             }
         }
         .onAppear {

@@ -12,7 +12,6 @@ class FarmViewModel: ObservableObject {
     @Published var selectedBuilding: BuildingType?
     @Published var showBuildingDetail = false
     
-    // Система реплик менеджера
     @Published var showManagerReply = false
     @Published var currentManagerReply = ""
     @Published var hasShownWelcome = false
@@ -51,10 +50,8 @@ class FarmViewModel: ObservableObject {
         let success = buildingManager.upgradeBuilding(id: building.id, gameViewModel: gameViewModel)
         
         if success {
-            // Обновляем выбранное здание
             selectedBuilding = buildingManager.getBuilding(by: building.id)
             
-            // Показываем реплику менеджера при первом улучшении
             if wasFirstUpgrade {
                 showManagerReplyForBuilding(buildingId: building.id)
             }
@@ -83,7 +80,7 @@ class FarmViewModel: ObservableObject {
         hasShownWelcome = true
         UserDefaults.standard.set(true, forKey: welcomeShownKey)
         
-        showManagerReplyWithText("Welcome to the Farm! Here you can build and upgrade facilities to generate passive income for your hotel.")
+        showManagerReplyWithText("Oh, great owner! Before you lie the ruins of former greatness. But I see a spark in you! Let's start small: let's settle someone here!")
     }
     
     private func showManagerReplyForBuilding(buildingId: String) {

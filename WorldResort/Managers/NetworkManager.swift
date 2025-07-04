@@ -9,16 +9,15 @@ import UIKit
 import SwiftUI
 @preconcurrency import WebKit
 
-// MARK: - Network
 class NetworkManager: ObservableObject {
     
-    @Published private(set) var targetURL: URL?
-        
-    static let initialURL = URL(string: "https://worldresortgaming.top/get")!
-
-    private let storage: UserDefaults
+    @Published private(set) var worldresortURL: URL?
     
+    static let initialURL = URL(string: "https://worldresortgaming.top/get")!
+    
+    private let storage: UserDefaults
     private var didSaveURL = false
+    private let requestTimeout: TimeInterval = 10.0
     
     init(storage: UserDefaults = .standard) {
         self.storage = storage
@@ -35,14 +34,14 @@ class NetworkManager: ObservableObject {
         }
         
         storage.set(url.absoluteString, forKey: "savedurl")
-        targetURL = url
+        worldresortURL = url
         didSaveURL = true
     }
     
     private func loadProvenURL() {
         if let urlString = storage.string(forKey: "savedurl") {
             if let url = URL(string: urlString) {
-                targetURL = url
+                worldresortURL = url
                 didSaveURL = true
             } else {
                 print("Error: load - \(urlString)")
@@ -61,14 +60,20 @@ class NetworkManager: ObservableObject {
     }
     
     func checkInitialURL() async throws -> Bool {
+        let configuration = URLSessionConfiguration.default
+        configuration.timeoutIntervalForRequest = requestTimeout
+        configuration.timeoutIntervalForResource = requestTimeout
+        let session = URLSession(configuration: configuration)
+        
+        var request = URLRequest(url: Self.initialURL)
+        request.setValue(getUAgent(forWebView: false), forHTTPHeaderField: "User-Agent")
+        request.timeoutInterval = requestTimeout
+        
         do {
-            var request = URLRequest(url: Self.initialURL)
-            request.setValue(getUAgent(forWebView: false), forHTTPHeaderField: "User-Agent")
-            
-            let (_, response) = try await URLSession.shared.data(for: request)
+            let (_, response) = try await session.data(for: request)
             
             guard let httpResponse = response as? HTTPURLResponse else {
-                return true
+                return false
             }
             
             if (400...599).contains(httpResponse.statusCode) {
@@ -76,9 +81,9 @@ class NetworkManager: ObservableObject {
             }
             
             return true
-
+            
         } catch {
-            return false
+            throw error
         }
     }
     
@@ -94,7 +99,6 @@ class NetworkManager: ObservableObject {
     }
 }
 
-// MARK: - WebView
 struct WebViewManager: UIViewRepresentable {
     let url: URL
     let webManager: NetworkManager
@@ -142,9 +146,6 @@ struct WebViewManager: UIViewRepresentable {
                 parent.webManager.checkURL(finalURL)
             } else {}
         }
-        
-        func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {}
-        
-        func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {}
     }
 }
+

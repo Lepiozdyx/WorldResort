@@ -29,7 +29,7 @@ struct MenuView: View {
                             .frame(height: 150)
                             .shadow(color: .yellow.opacity(0.5), radius: 5, x: 2, y: 2)
                             .overlay(alignment: .bottom) {
-                                ActionView(name: .redCapsule, text: "hotel", maxWidth: 100, maxHeight: 35)
+                                ActionView(name: .redCapsule, text: "hotel", maxWidth: 100, maxHeight: 30)
                             }
                     }
                     .soundButton()

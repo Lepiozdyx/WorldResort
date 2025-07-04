@@ -22,13 +22,11 @@ struct BuildingButton: View {
                 // Основное изображение здания
                 buildingImageView
                     .overlay(alignment: .topTrailing) {
-                        // Бэйдж с доходом (только для построенных зданий)
                         if building.isBuilt {
                             incomeBadgeView
                         }
                     }
                 
-                // Оверлей для непостроенных зданий
                 if !building.isBuilt {
                     constructionOverlay
                 }
@@ -49,9 +47,9 @@ struct BuildingButton: View {
         Image(building.imageName, bundle: nil)
             .resizable()
             .scaledToFit()
-            .frame(height: 150)
+            .frame(maxHeight: 400)
             .shadow(color: .black.opacity(0.3), radius: 5, x: 2, y: 2)
-            .opacity(building.isBuilt ? 1.0 : 0.6)
+            .opacity(building.isBuilt ? 1.0 : 0.75)
     }
     
     private var incomeBadgeView: some View {

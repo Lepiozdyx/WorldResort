@@ -56,7 +56,6 @@ class BuildingManager: ObservableObject {
         let building = buildings[index]
         guard building.canUpgrade else { return false }
         
-        // Попытка списать монеты
         if gameViewModel.purchaseItem(price: building.upgradeCostCoins) {
             buildings[index].upgrade()
             saveBuildings()
@@ -73,7 +72,6 @@ class BuildingManager: ObservableObject {
         let lastClaimDate = UserDefaults.standard.object(forKey: lastClaimKey) as? Date ?? Date.distantPast
         let calendar = Calendar.current
         
-        // Проверяем, прошло ли 24 часа с последнего сбора
         if calendar.date(byAdding: .hour, value: 24, to: lastClaimDate) ?? Date() <= Date() {
             canClaimDailyReward = true
             updateDailyReward()
@@ -88,7 +86,6 @@ class BuildingManager: ObservableObject {
             total + building.coinsPerDay
         }
         
-        // Если есть доход и можно собрать награду
         if dailyRewardAmount > 0 && canClaimDailyReward {
             canClaimDailyReward = true
         } else if dailyRewardAmount == 0 {
@@ -98,14 +95,10 @@ class BuildingManager: ObservableObject {
     
     func claimDailyReward(gameViewModel: GameViewModel) -> Bool {
         guard canClaimDailyReward && dailyRewardAmount > 0 else { return false }
-        
-        // Добавляем монеты в игровой банк
         gameViewModel.addCoinsFromBuildings(amount: dailyRewardAmount)
         
-        // Обновляем дату последнего сбора
         UserDefaults.standard.set(Date(), forKey: lastClaimKey)
         
-        // Сбрасываем возможность сбора до следующего дня
         canClaimDailyReward = false
         dailyRewardAmount = 0
         
@@ -130,7 +123,6 @@ class BuildingManager: ObservableObject {
         return result
     }
     
-    // Проверка на первое улучшение здания (для триггера реплик менеджера)
     func isBuildingFirstUpgrade(id: String) -> Bool {
         guard let building = buildings.first(where: { $0.id == id }) else { return false }
         return building.level == 1

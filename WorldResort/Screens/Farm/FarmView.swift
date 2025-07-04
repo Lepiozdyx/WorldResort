@@ -17,7 +17,6 @@ struct FarmView: View {
     
     var body: some View {
         ZStack {
-            // Фон
             MainBackView(image: .farmbg)
             
             topBarView
@@ -68,7 +67,7 @@ struct FarmView: View {
         VStack {
             Spacer()
             Spacer()
-            // Первый ряд: Boiler room + Garden
+            // Boiler room + Garden
             HStack(spacing: 50) {
                 Spacer()
                 buildingButtonView(for: "boilerroom")
@@ -77,7 +76,7 @@ struct FarmView: View {
                 Spacer()
             }
             
-            // Второй ряд: Library + Warehouse
+            // Library + Warehouse
             HStack(spacing: 50) {
                 Spacer()
                 Spacer()

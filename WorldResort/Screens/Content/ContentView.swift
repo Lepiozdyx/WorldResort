@@ -72,6 +72,7 @@ struct ContentView: View {
         .onChange(of: scenePhase) { newPhase in
             switch newPhase {
             case .active:
+                OrientationManager.shared.lockLandscape()
                 manager.playMusic()
             case .background, .inactive:
                 manager.stopMusic()
