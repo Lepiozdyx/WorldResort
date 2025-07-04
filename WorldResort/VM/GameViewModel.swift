@@ -324,4 +324,9 @@ class GameViewModel: ObservableObject {
     func purchaseItem(price: Int) -> Bool {
         return bank.deductCoins(price)
     }
+    
+    func addCoinsFromBuildings(amount: Int) {
+        bank.addCoins(amount)
+        dailyTaskManager.coinsCollected(amount: amount)
+    }
 }

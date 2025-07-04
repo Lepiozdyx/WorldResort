@@ -34,6 +34,19 @@ enum Building: String, Codable, CaseIterable {
             return "More shelves means more guests!"
         }
     }
+    
+    var description: String {
+        switch self {
+        case .boilerroom:
+            return "Speeds up room cleaning and provides warm atmosphere for guests"
+        case .garden:
+            return "Speeds up food preparation and provides fresh ingredients"
+        case .library:
+            return "Increases customer satisfaction and cultural experience"
+        case .warehouse:
+            return "Increases storage capacity and guest waiting time"
+        }
+    }
 }
 
 struct BuildingType: Identifiable, Codable, Equatable {
@@ -57,6 +70,8 @@ struct BuildingType: Identifiable, Codable, Equatable {
     }
     
     private func getCoinsPerDay(for buildingLevel: Int) -> Int {
+        guard buildingLevel > 0 else { return 0 }
+        
         switch id {
         case "boilerroom":
             switch buildingLevel {
@@ -105,6 +120,7 @@ struct BuildingType: Identifiable, Codable, Equatable {
         switch id {
         case "boilerroom":
             switch nextLevel {
+            case 1: return 300
             case 2: return 500
             case 3: return 700
             case 4: return 1200
@@ -113,6 +129,7 @@ struct BuildingType: Identifiable, Codable, Equatable {
             }
         case "garden":
             switch nextLevel {
+            case 1: return 300
             case 2: return 500
             case 3: return 700
             case 4: return 1200
@@ -121,6 +138,7 @@ struct BuildingType: Identifiable, Codable, Equatable {
             }
         case "library":
             switch nextLevel {
+            case 1: return 300
             case 2: return 500
             case 3: return 700
             case 4: return 1200
@@ -129,6 +147,7 @@ struct BuildingType: Identifiable, Codable, Equatable {
             }
         case "warehouse":
             switch nextLevel {
+            case 1: return 300
             case 2: return 500
             case 3: return 700
             case 4: return 1200
@@ -141,6 +160,20 @@ struct BuildingType: Identifiable, Codable, Equatable {
     
     var canUpgrade: Bool {
         return level < 5
+    }
+    
+    var isBuilt: Bool {
+        return level > 0
+    }
+    
+    var upgradeButtonText: String {
+        if level == 0 {
+            return "BUILD"
+        } else if canUpgrade {
+            return "UPGRADE"
+        } else {
+            return "MAX LEVEL"
+        }
     }
     
     mutating func upgrade() {
@@ -156,28 +189,28 @@ struct BuildingType: Identifiable, Codable, Equatable {
                 name: "Boiler room",
                 description: "Speeds up room cleaning",
                 imageName: "boilerroom",
-                level: 1
+                level: 0
             ),
             BuildingType(
                 id: "garden",
                 name: "Garden",
                 description: "Speeds up food preparation",
                 imageName: "garden",
-                level: 1
+                level: 0
             ),
             BuildingType(
                 id: "library",
                 name: "Library",
                 description: "Increases customer satisfaction, which in turn affects the amount of tips received.",
                 imageName: "library",
-                level: 1
+                level: 0
             ),
             BuildingType(
                 id: "warehouse",
                 name: "Warehouse",
                 description: "Increases the maximum guest waiting time",
                 imageName: "warehouse",
-                level: 1
+                level: 0
             )
         ]
     }

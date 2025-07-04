@@ -10,10 +10,39 @@ import SwiftUI
 struct MenuView: View {
     @EnvironmentObject private var gameViewModel: GameViewModel
     @Binding var appState: AppState
+    @State private var isPulsing = false
     
     var body: some View {
         ZStack(alignment: .bottom) {
             MainBackView()
+            
+            VStack {
+                HStack {
+                    Spacer()
+                    
+                    Button {
+                        appState = .farm
+                    } label: {
+                        Image(.hotelbuilding)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(height: 150)
+                            .shadow(color: .yellow.opacity(0.5), radius: 5, x: 2, y: 2)
+                            .overlay(alignment: .bottom) {
+                                ActionView(name: .redCapsule, text: "hotel", maxWidth: 100, maxHeight: 35)
+                            }
+                    }
+                    .soundButton()
+                    .scaleEffect(isPulsing ? 1.05 : 1.0)
+                    .animation(
+                        .easeInOut(duration: 0.8)
+                        .repeatForever(autoreverses: true),
+                        value: isPulsing
+                    )
+                }
+                Spacer()
+            }
+            .padding()
             
             VStack(spacing: 20) {
                 DailyTaskView()
@@ -58,6 +87,7 @@ struct MenuView: View {
         }
         .onAppear {
             gameViewModel.resetGame()
+            isPulsing = true
         }
     }
 }
